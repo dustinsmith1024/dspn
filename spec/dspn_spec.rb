@@ -25,9 +25,15 @@ describe Dspn::Client do
 	end
 
 	it "#team_by_leagues first item should be the hawks", :run => true do
-		teams = @dspn.leagues_by_sport('basketball', 'nba')
-		teams.first.id.should eq(1)
-		teams.first.name.should eq('Hawks')
+		leagues = @dspn.leagues_by_sport('basketball', 'nba')
+		leagues.each do |league|
+			league.should be_instance_of(Dspn::League)
+			if league.groups
+				league.groups.each do |group|
+					group.should be_instance_of(Dspn::League)
+				end
+			end
+		end
 	end
 
 	it "#teams should return a list of Dspn::Team objects" do

@@ -48,10 +48,8 @@ module Dspn
       #http://api.espn.com/v1/sports/basketball/nba/teams?apikey=yours
       path = "sports/#{sport}/#{league}"
       leagues = get(path, {})
-      pp leagues
       leagues = leagues['sports'][0]['leagues'][0]['groups']
-      pp leagues
-      #leagues = leagues.each {|item| if item['groups'] map_leaguesLeague.create(item)}
+      leagues.map {|item| League.create(item)}
     end
 
     def map_league(league)
@@ -173,12 +171,25 @@ module Dspn
     def self.create(team_hash)
 
       self.new(team_hash['group_id'],
-               team_hash['name'],
-               team_hash['abbreviation'],
-               team_hash['shortName'],
-               team_hash['groups'])
+                team_hash['name'],
+                team_hash['abbreviation'],
+                team_hash['shortName'],
+                self.set_groups(team_hash['groups']))
+
+      #if league.groups
+        # Change sub groups (divisions) from hashes to Structs
+      #  league.groups = self.set_groups(league.groups)
+      #end
+      #league
     end
 
+    def self.set_groups(groups)
+      if groups
+        groups.map do |group|
+          League.create(group)
+        end
+      end
+    end
 
   end
 
