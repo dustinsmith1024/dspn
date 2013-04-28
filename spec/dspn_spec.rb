@@ -1,4 +1,5 @@
 require 'dspn'
+require 'ostruct'
 
 describe Dspn::Client do
 
@@ -27,10 +28,10 @@ describe Dspn::Client do
 	it "#team_by_leagues first item should be the hawks", :run => true do
 		leagues = @dspn.leagues_by_sport('basketball', 'nba')
 		leagues.each do |league|
-			league.should be_instance_of(Dspn::League)
+			league.should be_instance_of(OpenStruct)
 			if league.groups
 				league.groups.each do |group|
-					group.should be_instance_of(Dspn::League)
+					group.should be_instance_of(OpenStruct)
 				end
 			end
 		end
@@ -40,7 +41,7 @@ describe Dspn::Client do
 		teams = @dspn.nba_teams # Example of using the helpers
 		teams.should be_kind_of(Array)
 		teams.each do |team|
-			team.should be_instance_of(Dspn::Team)
+			team.should be_instance_of(OpenStruct)
 		end
 	end
 
@@ -48,7 +49,7 @@ describe Dspn::Client do
 		team = @dspn.team('basketball', 'nba', '1')
 		team.id.should eq(1)
 		team.name.should eq('Hawks')
-		team.should be_instance_of(Dspn::Team)
+		team.should be_instance_of(OpenStruct)
 	end
 
 	it "#team_news with id 1 should return team 1s news" do
@@ -110,7 +111,7 @@ describe Dspn::Client do
 		teams = @dspn.wnba_teams
 		teams.should be_kind_of(Array)
 		teams.each do |team|
-			team.should be_instance_of(Dspn::Team)
+			team.should be_instance_of(OpenStruct)
 		end
 	end
 

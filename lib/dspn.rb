@@ -1,5 +1,6 @@
 # coding: UTF-8
 require "httparty"
+require 'ostruct'
 
 #  In application controller do something like this
 #
@@ -34,14 +35,45 @@ module Dspn
       #http://api.espn.com/v1/sports/basketball/nba/teams/2/news?apikey=yours
       path = "sports/#{sport}/#{league}/teams/#{team_id}/news"
       news = get(path)['headlines']
-      news.map {|item| NewsItem.create(item)}
+      news.map {|item| item.to_ostruct_recursive }
+    end
+
+    def all_team_sports
+      [
+        {sport: 'basketball', league: 'nba'},
+        {sport: 'basketball', league: 'wnba'},
+        {sport: 'basketball', league: 'mens-college-basketball'},
+        {sport: 'basketball', league: 'womens-college-basketball'},
+        {sport: 'baseball', league: 'mlb'},
+        {sport: 'football', league: 'nfl'},
+        {sport: 'football', league: 'college-football'},
+        {sport: 'hockey', league: 'nhl'}
+      ]
+    end
+
+    def all_teams
+      #http://api.espn.com/v1/sports/teams?apikey=yours
+      # Return sports->leagues->teams
+      path = "sports/teams"
+      sports = get(path)
+      sports.to_ostruct_recursive
     end
 
     def teams(sport, league)
       #http://api.espn.com/v1/sports/basketball/nba/teams?apikey=yours
       path = "sports/#{sport}/#{league}/teams"
+      # Go get them all!  Can't figure out how to pass as an option
+      self.class.default_params[:limit] = 0
       teams = get(path)['sports'][0]['leagues'][0]['teams']
-      teams.map {|item| Team.create(item)}
+      teams.map {|item| item.to_ostruct_recursive }
+    end
+
+
+    def athletes(sport, league)
+      #http://api.espn.com/v1/sports/basketball/nba/athletes?apikey=yours
+      path = "sports/#{sport}/#{league}/athletes"
+      athletes = get(path)['sports'][0]['leagues'][0]['athletes']
+      athletes.map {|item| item.to_ostruct_recursive }
     end
 
     def leagues_by_sport(sport, league)
@@ -49,11 +81,7 @@ module Dspn
       path = "sports/#{sport}/#{league}"
       leagues = get(path, {})
       leagues = leagues['sports'][0]['leagues'][0]['groups']
-      leagues.map {|item| League.create(item)}
-    end
-
-    def map_league(league)
-      leagues.map {|item| League.create(item)}
+      leagues.map {|item| item.to_ostruct_recursive }
     end
 
     def teams_by_league(sport, league)
@@ -62,16 +90,14 @@ module Dspn
       teams = get(path, {groups: 1})
       pp teams
       teams = teams['sports'][0]['leagues'][0]['teams']
-      teams.map {|item| Team.create(item)}
+      teams.map {|item| item.to_ostruct_recursive }
     end
 
     def mens_college_basketball_teams
-      # Example we could do this...
       teams('basketball', 'mens-college-basketball')
     end
 
     def womens_college_basketball_teams
-      # Example we could do this...
       teams('basketball', 'womens-college-basketball')
     end
 
@@ -101,9 +127,9 @@ module Dspn
 
     def team(sport, league, team_id)
       #http://api.espn.com/v1/sports/basketball/nba/teams?apikey=yours
-      path = "sports/basketball/#{league}/teams/#{team_id}"
+      path = "sports/#{sport}/#{league}/teams/#{team_id}"
       team = get(path)['sports'][0]['leagues'][0]['teams'][0]
-      Team.create(team)
+      team.to_ostruct_recursive
     end
 
     def get(path, options={})
@@ -122,6 +148,7 @@ module Dspn
     end
   end
 
+  # NOT USING THESE - CAN PROBABLY DELETE THEM BUT DONT WANT TO YET
   class NewsItem < Struct.new(:headline, :keywords, :lastModified, :audio, :premium, :mobileStory, :links, :type, :related, :id, :story, :title, :linkText, :byline, :source, :description, :images, :categories, :published, :video)
 
     def self.create(news_hash)
@@ -193,4 +220,41 @@ module Dspn
 
   end
 
+  #class Athlete < OpenStruct.new()
+  #  def self.create(athlete_hash)
+  #    self.new(athlete_hash)
+  #  end
+  #end
+
+end
+
+
+class Hash
+  # options:
+  #   :exclude => [keys] - keys need to be symbols 
+  def to_ostruct_recursive(options = {})
+    convert_to_ostruct_recursive(self, options) 
+  end
+ 
+  def with_sym_keys
+    self.inject({}) { |memo, (k,v)| memo[k.to_sym] = v; memo }
+  end
+
+  private
+    def convert_to_ostruct_recursive(obj, options)
+      result = obj
+      if result.is_a? Hash
+        #puts result
+        result = result.dup.with_sym_keys
+        result.each  do |key, val| 
+          puts key
+          puts val
+          result[key] = convert_to_ostruct_recursive(val, options) unless options[:exclude].try(:include?, key)
+        end
+        result = OpenStruct.new result       
+      elsif result.is_a? Array
+         result = result.map { |r| convert_to_ostruct_recursive(r, options) }
+      end
+      return result
+    end
 end
