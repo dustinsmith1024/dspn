@@ -31,6 +31,18 @@ module Dspn
       self.class.default_params :apikey => key, :insider => 'no'
     end
 
+    def sport_news(sport='cities', league=nil)
+      #http://api.espn.com/v1/sports/basketball/nba/news?apikey=yours
+      if league
+        path = "sports/#{sport}/#{league}/news"
+      else
+        path = "sports/#{sport}/news"
+      end
+      news = get(path)['headlines']
+      puts news
+      news.map {|item| item.to_ostruct_recursive }
+    end
+
     def team_news(sport, league, team_id)
       #http://api.espn.com/v1/sports/basketball/nba/teams/2/news?apikey=yours
       path = "sports/#{sport}/#{league}/teams/#{team_id}/news"
@@ -49,6 +61,52 @@ module Dspn
         {sport: 'football', league: 'college-football'},
         {sport: 'hockey', league: 'nhl'}
       ]
+    end
+
+    def non_team_sports
+      [
+        {sport: 'cities', league: nil},
+        {sport: 'cities', league: 'boston'},
+        {sport: 'cities', league: 'chicago'},
+        {sport: 'cities', league: 'dallas'},
+        {sport: 'cities', league: 'los-angeles'},
+        {sport: 'cities', league: 'new-york'},
+        {sport: 'espnw', league: nil},
+        {sport: 'fantasy', league: nil},
+        {sport: 'fantasy', league: 'baseball'},
+        {sport: 'fantasy', league: 'basketball'},
+        {sport: 'fantasy', league: 'football'},
+        {sport: 'fantasy', league: 'hockey'},
+        {sport: 'magazine', league: nil},
+        {sport: 'action-sports', league: nil},
+        {sport: 'action-sports', league: 'bmx'},
+        {sport: 'action-sports', league: 'moto-x'},
+        {sport: 'action-sports', league: 'skateboarding'},
+        {sport: 'action-sports', league: 'skiing'},
+        {sport: 'action-sports', league: 'snowboarding'},
+        {sport: 'action-sports', league: 'snowmobiling'},
+        {sport: 'action-sports', league: 'surfing'},
+        {sport: 'action-sports', league: 'rally'},
+        {sport: 'baseball', league: 'mlb'},
+        {sport: 'basketball', league: 'mens-college-basketball'},
+        {sport: 'basketball', league: 'womens-college-basketball'},
+        {sport: 'basketball', league: 'nba'},
+        {sport: 'basketball', league: 'wnba'},
+        {sport: 'boxing', league: nil},
+        {sport: 'football', league: 'college-football'},
+        {sport: 'football', league: 'nfl'},
+        {sport: 'golf', league: nil},
+        {sport: 'hockey', league: 'nhl'},
+        {sport: 'horse-racing', league: nil},
+        {sport: 'mma', league: nil},
+        {sport: 'olympics', league: nil},
+        {sport: 'racing', league: nil},
+        {sport: 'racing', league: 'nascar'},
+        {sport: 'soccer', league: nil},
+        {sport: 'tennis', league: nil}
+        #/sports/soccer/:leagueName  Specific professional soccer league. Use a helper API call for a complete list of supported soccer leagues.       
+      ]
+
     end
 
     def all_teams
