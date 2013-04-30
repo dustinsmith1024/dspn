@@ -43,16 +43,21 @@ module Dspn
       else
         path += "#{sport}/news"
       end
-      
-      news = get(path)['headlines']
-      news.map {|item| item.to_ostruct_recursive }
+      self.class.default_params[:limit] = 15
+      news = get(path)
+      puts 'TEAM NEWS:'
+      puts news
+      news['headlines'].map {|item| item.to_ostruct_recursive }
     end
 
     def team_news(sport, league, team_id)
       #http://api.espn.com/v1/sports/basketball/nba/teams/2/news?apikey=yours
       path = "sports/#{sport}/#{league}/teams/#{team_id}/news"
-      news = get(path)['headlines']
-      news.map {|item| item.to_ostruct_recursive }
+      self.class.default_params[:limit] = 15
+      news = get(path)
+      puts 'TEAM NEWS:'
+      puts news
+      news['headlines'].map {|item| item.to_ostruct_recursive }
     end
 
     def all_team_sports
@@ -139,6 +144,7 @@ module Dspn
     def athletes(sport, league)
       #http://api.espn.com/v1/sports/basketball/nba/athletes?apikey=yours
       path = "sports/#{sport}/#{league}/athletes"
+      self.class.default_params[:limit] = 0
       athletes = get(path)['sports'][0]['leagues'][0]['athletes']
       athletes.map {|item| item.to_ostruct_recursive }
     end
@@ -195,6 +201,7 @@ module Dspn
     def team(sport, league, team_id)
       #http://api.espn.com/v1/sports/basketball/nba/teams?apikey=yours
       path = "sports/#{sport}/#{league}/teams/#{team_id}"
+      self.class.default_params[:limit] = 0
       team = get(path)['sports'][0]['leagues'][0]['teams'][0]
       team.to_ostruct_recursive
     end
