@@ -33,13 +33,18 @@ module Dspn
 
     def sport_news(sport='cities', league=nil)
       #http://api.espn.com/v1/sports/basketball/nba/news?apikey=yours
-      if league
-        path = "sports/#{sport}/#{league}/news"
-      else
-        path = "sports/#{sport}/news"
+      path = "sports/"
+      if non_nested_sports.include? sport
+        path = ""
       end
+
+      if league
+        path += "#{sport}/#{league}/news"
+      else
+        path += "#{sport}/news"
+      end
+      
       news = get(path)['headlines']
-      puts news
       news.map {|item| item.to_ostruct_recursive }
     end
 
@@ -61,6 +66,10 @@ module Dspn
         {sport: 'football', league: 'college-football'},
         {sport: 'hockey', league: 'nhl'}
       ]
+    end
+
+    def non_nested_sports
+      ['cities', 'espnw', 'fantasy', 'magazine']
     end
 
     def non_team_sports
@@ -302,11 +311,8 @@ class Hash
     def convert_to_ostruct_recursive(obj, options)
       result = obj
       if result.is_a? Hash
-        #puts result
         result = result.dup.with_sym_keys
         result.each  do |key, val| 
-          puts key
-          puts val
           result[key] = convert_to_ostruct_recursive(val, options) unless options[:exclude].try(:include?, key)
         end
         result = OpenStruct.new result       
