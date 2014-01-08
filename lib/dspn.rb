@@ -25,11 +25,7 @@ module Dspn
     format :json
 
     def initialize(options={})
-      @api_key = options[:api_key]
-    end
-
-    def append_key(path)
-      path + "apikey=#{@api_key}"
+      self.class.default_params :apikey => options[:api_key]
     end
 
     def by_date(date)
@@ -39,7 +35,7 @@ module Dspn
 
     def team_news(team_id)
       #http://api.espn.com/v1/sports/basketball/nba/teams/2/news?apikey=yours
-      path = append_key("sports/basketball/nba/teams/#{team_id}/news?insider=no&")
+      path = "sports/basketball/nba/teams/#{team_id}/news?insider=no&"
       response = self.class.get(path, {})
       news = response['headlines']
       news.map {|item| NewsItem.create(item)}
@@ -47,7 +43,7 @@ module Dspn
 
     def teams(league_slug)
       #http://api.espn.com/v1/sports/basketball/nba/teams?apikey=yours
-      path = append_key("sports/basketball/#{league_slug}/teams?")
+      path = "sports/basketball/#{league_slug}/teams"
       response = self.class.get(path, {})
       teams = response['sports'][0]['leagues'][0]['teams']
       teams.map {|item| Team.create(item)}
@@ -55,7 +51,7 @@ module Dspn
 
     def team(league_slug, team_id)
       #http://api.espn.com/v1/sports/basketball/nba/teams?apikey=yours
-      path = append_key("sports/basketball/#{league_slug}/teams/#{team_id}?")
+      path = "sports/basketball/#{league_slug}/teams/#{team_id}?"
       response = self.class.get(path, {})
       team = response['sports'][0]['leagues'][0]['teams'][0]
       Team.create(team)
